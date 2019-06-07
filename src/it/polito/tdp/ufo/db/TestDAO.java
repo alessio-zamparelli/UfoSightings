@@ -11,9 +11,11 @@ public class TestDAO extends SightingsDAO {
 		
 		List<Sighting> list = dao.getSightings() ;
 		
-		for(Sighting s: list)
-			System.out.println(s);
+//		for(Sighting s: list)
+//			System.out.println(s);
 
+//		dao.getStati().forEach(a->System.out.println(a));
+		
 	}
 
 }

@@ -5,7 +5,13 @@
 package it.polito.tdp.ufo;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+
+import it.polito.tdp.ufo.model.AnnoCount;
+import it.polito.tdp.ufo.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -13,41 +19,90 @@ import javafx.scene.control.TextArea;
 
 public class UfoController {
 
-    @FXML // ResourceBundle that was given to the FXMLLoader
-    private ResourceBundle resources;
+	private Model model;
 
-    @FXML // URL location of the FXML file that was given to the FXMLLoader
-    private URL location;
+	@FXML // ResourceBundle that was given to the FXMLLoader
+	private ResourceBundle resources;
 
-    @FXML // fx:id="boxAnno"
-    private ComboBox<?> boxAnno; // Value injected by FXMLLoader
+	@FXML // URL location of the FXML file that was given to the FXMLLoader
+	private URL location;
 
-    @FXML // fx:id="boxStato"
-    private ComboBox<?> boxStato; // Value injected by FXMLLoader
+	@FXML // fx:id="boxAnno"
+	private ComboBox<AnnoCount> boxAnno; // Value injected by FXMLLoader
 
-    @FXML // fx:id="txtResult"
-    private TextArea txtResult; // Value injected by FXMLLoader
+	@FXML // fx:id="boxStato"
+	private ComboBox<String> boxStato; // Value injected by FXMLLoader
 
-    @FXML
-    void handleAnalizza(ActionEvent event) {
+	@FXML // fx:id="txtResult"
+	private TextArea txtResult; // Value injected by FXMLLoader
 
-    }
+	@FXML
+	void handleAnalizza(ActionEvent event) {
 
-    @FXML
-    void handleAvvistamenti(ActionEvent event) {
+		String stato = boxStato.getValue();
+		if (stato == null) {
+			txtResult.appendText("Devi selezionare uno stato");
+			return;
+		}
+		List<String> predecessori = this.model.getPredecessori(stato);
+		List<String> successori = this.model.getSuccessori(stato);
+		List<String> raggiungibili = this.model.getRaggiungibili(stato);
 
-    }
+		txtResult.appendText("PREDECESSORI:\n");
+		for (String s : predecessori)
+			txtResult.appendText(s + "\n");
+		txtResult.appendText("SUCCESSORI:\n");
+		for (String s : successori)
+			txtResult.appendText(s + "\n");
+		txtResult.appendText("RAGGIUNGIBILI:\n");
+		for (String s : raggiungibili)
+			txtResult.appendText(s + "\n");
 
-    @FXML
-    void handleSequenza(ActionEvent event) {
+	}
 
-    }
+	@FXML
+	void handleAvvistamenti(ActionEvent event) {
+		AnnoCount anno = boxAnno.getValue();
+		if (anno == null) {
+			txtResult.appendText("Devi selezionare un anno");
+			return;
+		}
 
-    @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
-        assert boxAnno != null : "fx:id=\"boxAnno\" was not injected: check your FXML file 'Ufo.fxml'.";
-        assert boxStato != null : "fx:id=\"boxStato\" was not injected: check your FXML file 'Ufo.fxml'.";
-        assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Ufo.fxml'.";
+		this.model.creaGrafo(anno.getYear());
 
-    }
+		txtResult.appendText("Grafo creato!\n");
+		txtResult.appendText("# vertici: " + this.model.getNvertici() + "\n");
+		txtResult.appendText("# archi: " + this.model.getNarchi() + "\n");
+
+		this.boxStato.getItems().setAll(this.model.getStati());
+	}
+
+	@FXML
+	void handleSequenza(ActionEvent event) {
+
+		String stato = boxStato.getValue();
+		if (stato == null) {
+			txtResult.appendText("Devi selezionare uno stato");
+			return;
+		}
+		
+		List<String> percorso = this.model.getPercorsoMassimo(stato);
+		txtResult.setText("PERCORSO MASSIMO:\n");
+		percorso.forEach(a->txtResult.appendText(a + "->"));
+		
+	}
+
+	@FXML // This method is called by the FXMLLoader when initialization is complete
+	void initialize() {
+		assert boxAnno != null : "fx:id=\"boxAnno\" was not injected: check your FXML file 'Ufo.fxml'.";
+		assert boxStato != null : "fx:id=\"boxStato\" was not injected: check your FXML file 'Ufo.fxml'.";
+		assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Ufo.fxml'.";
+
+	}
+
+	public void setModel(Model model) {
+		this.model = model;
+		this.boxAnno.getItems().addAll(this.model.getAnni().stream().sorted().collect(Collectors.toList()));
+	}
+
 }
